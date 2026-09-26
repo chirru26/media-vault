@@ -2,9 +2,8 @@ package com.chirru26.mediavault.ui;
 
 import com.chirru26.mediavault.data.MediaRepository;
 import com.chirru26.mediavault.model.MediaItem;
-import com.chirru26.mediavault.model.MediaType;
 import com.chirru26.mediavault.service.MediaScanner;
-import javafx.collections.FXCollections;
+import com.chirru26.mediavault.media.ThumbnailService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -20,12 +20,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.List;
 
 public final class MainView {
     private final MediaScanner scanner;
     private final MediaRepository repository;
+    private final ThumbnailService thumbnailService = new ThumbnailService();
     private final GridPane grid = new GridPane();
     private final Label status = new Label("0 media items");
 
@@ -63,8 +64,7 @@ public final class MainView {
     private void chooseAndScanFolder(Button source) {
         var chooser = new DirectoryChooser();
         chooser.setTitle("Select Media Folder");
-        var window = source.getScene().getWindow();
-        var folder = chooser.showDialog(window);
+        var folder = chooser.showDialog(source.getScene().getWindow());
         if (folder == null) return;
         source.setDisable(true);
         try {
@@ -134,15 +134,29 @@ public final class MainView {
         var preview = new StackPane();
         preview.setPrefSize(190, 125);
         preview.setStyle("-fx-background-color: #e5e7eb; -fx-background-radius: 10;");
-        var icon = new Label(switch (item.mediaType()) {
-            case IMAGE -> "🖼";
-            case VIDEO -> "▶";
-            case AUDIO -> "♫";
-            case DOCUMENT -> "▤";
-            case OTHER -> "•";
-        });
-        icon.setStyle("-fx-font-size: 32px;");
-        preview.getChildren().add(icon);
+
+        if (item.mediaType().name().equals("IMAGE") && Files.isRegularFile(item.filePath())) {
+            var image = thumbnailService.load(item.filePath());
+            if (image != null) {
+                var imageView = new ImageView(image);
+                imageView.setFitWidth(190);
+                imageView.setFitHeight(125);
+                imageView.setPreserveRatio(true);
+                preview.getChildren().add(imageView);
+            }
+        }
+        if (preview.getChildren().isEmpty()) {
+            var icon = new Label(switch (item.mediaType()) {
+                case IMAGE -> "🖼";
+                case VIDEO -> "▶";
+                case AUDIO -> "♫";
+                case DOCUMENT -> "▤";
+                case OTHER -> "•";
+            });
+            icon.setStyle("-fx-font-size: 32px;");
+            preview.getChildren().add(icon);
+        }
+
         var name = new Label(item.fileName());
         name.setMaxWidth(190);
         name.setEllipsisString("...");
