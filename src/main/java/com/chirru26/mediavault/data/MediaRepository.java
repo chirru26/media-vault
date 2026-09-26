@@ -9,8 +9,21 @@ import java.util.*;
 
 public final class MediaRepository {
     public void save(MediaItem item) throws SQLException {
-        String sql = """INSERT INTO media(file_name,file_path,mime_type,media_type,file_size,modified_at,content_hash,width,height,duration_ms,indexed_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(file_path) DO UPDATE SET file_name=excluded.file_name,mime_type=excluded.mime_type,media_type=excluded.media_type,file_size=excluded.file_size,modified_at=excluded.modified_at,content_hash=excluded.content_hash,width=excluded.width,height=excluded.height,duration_ms=excluded.duration_ms,indexed_at=excluded.indexed_at""";
+        String sql = """
+            INSERT INTO media(file_name,file_path,mime_type,media_type,file_size,modified_at,content_hash,width,height,duration_ms,indexed_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(file_path) DO UPDATE SET
+                file_name=excluded.file_name,
+                mime_type=excluded.mime_type,
+                media_type=excluded.media_type,
+                file_size=excluded.file_size,
+                modified_at=excluded.modified_at,
+                content_hash=excluded.content_hash,
+                width=excluded.width,
+                height=excluded.height,
+                duration_ms=excluded.duration_ms,
+                indexed_at=excluded.indexed_at
+            """;
         try (var c = Database.getConnection(); var p = c.prepareStatement(sql)) {
             p.setString(1,item.fileName()); p.setString(2,item.filePath().toAbsolutePath().normalize().toString());
             p.setString(3,item.mimeType()); p.setString(4,item.mediaType().name()); p.setLong(5,item.fileSize());
