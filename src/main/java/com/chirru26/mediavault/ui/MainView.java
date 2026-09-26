@@ -30,6 +30,8 @@ public final class MainView {
     private final ThumbnailService thumbnailService = new ThumbnailService();
     private final GridPane grid = new GridPane();
     private final Label status = new Label("0 media items");
+    private final Label selectedName = new Label("No media selected");
+    private final Label selectedDetails = new Label("Select a media item to view its details.");
 
     public MainView(MediaScanner scanner, MediaRepository repository) {
         this.scanner = scanner;
@@ -42,6 +44,7 @@ public final class MainView {
         root.setTop(createHeader());
         root.setLeft(createSidebar());
         root.setCenter(createLibrary());
+        root.setRight(createDetailsPanel());
         refresh();
         return root;
     }
@@ -111,8 +114,40 @@ public final class MainView {
         return new StackPane(content);
     }
 
+    private Node createDetailsPanel() {
+        var panel = new VBox(14);
+        panel.setPrefWidth(290);
+        panel.setPadding(new Insets(24));
+        panel.setStyle("-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 0 1;");
+
+        var heading = new Label("Details");
+        heading.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        selectedName.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        selectedName.setWrapText(true);
+        selectedDetails.setWrapText(true);
+        selectedDetails.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 12px;");
+
+        var open = new Button("Open Viewer");
+        open.setMaxWidth(Double.MAX_VALUE);
+        open.setOnAction(event -> {
+            MediaItem item = selectedItem;
+            if (item != null && grid.getScene() != null) {
+                new MediaViewer().show(item, (Stage) grid.getScene().getWindow());
+            }
+        });
+        open.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(() -> selectedItem == null));
+
+        panel.getChildren().addAll(heading, new Separator(), selectedName, selectedDetails, open);
+        return panel;
+    }
+
+    private MediaItem selectedItem;
+
     private void refresh() {
         grid.getChildren().clear();
+        selectedItem = null;
+        selectedName.setText("No media selected");
+        selectedDetails.setText("Select a media item to view its details.");
         try {
             List<MediaItem> items = repository.findAll();
             if (items.isEmpty()) {
@@ -167,6 +202,7 @@ public final class MainView {
         path.setStyle("-fx-font-size: 10px; -fx-text-fill: #9ca3af;");
         box.getChildren().addAll(preview, name, path);
         box.setOnMouseClicked(event -> {
+            select(item);
             if (event.getClickCount() == 2) {
                 var window = (Stage) box.getScene().getWindow();
                 new MediaViewer().show(item, window);
@@ -174,6 +210,24 @@ public final class MainView {
         });
         box.setStyle("-fx-cursor: hand;");
         return box;
+    }
+
+    private void select(MediaItem item) {
+        selectedItem = item;
+        selectedName.setText(item.fileName());
+        selectedDetails.setText("Type: " + item.mediaType()
+                + "\nSize: " + formatSize(item.fileSize())
+                + "\nModified: " + item.modifiedAt()
+                + "\n\nLocation:\n" + item.filePath());
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        double value = bytes;
+        String[] units = {"KB", "MB", "GB", "TB"};
+        int unit = -1;
+        do { value /= 1024.0; unit++; } while (value >= 1024 && unit < units.length - 1);
+        return String.format("%.2f %s", value, units[unit]);
     }
 
     private Node emptyState() {
