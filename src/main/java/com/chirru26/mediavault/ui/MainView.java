@@ -19,6 +19,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
 import java.nio.file.Files;
 import java.util.List;
@@ -165,6 +166,13 @@ public final class MainView {
         path.setEllipsisString("...");
         path.setStyle("-fx-font-size: 10px; -fx-text-fill: #9ca3af;");
         box.getChildren().addAll(preview, name, path);
+        box.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                var window = (Stage) box.getScene().getWindow();
+                new MediaViewer().show(item, window);
+            }
+        });
+        box.setStyle("-fx-cursor: hand;");
         return box;
     }
 
