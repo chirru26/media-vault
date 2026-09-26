@@ -1,24 +1,44 @@
 # MediaVault
 
-A local-first desktop media management system built with Java 25, JavaFX, Maven, and SQLite.
+MediaVault is a local-first desktop media management application built with Java 25, JavaFX, Maven and SQLite.
 
-## Current status
+## Features
 
-Foundation phase: project structure and the first desktop UI are in place.
+- Recursive folder scanning
+- Image, video, audio and document indexing
+- SHA-256 content hashing and duplicate detection
+- SQLite local library with WAL mode
+- Image thumbnails and large preview viewer
+- Search by filename/path
+- Media-type filtering
+- Sorting by name, date and file size
+- Favorites and Trash lifecycle
+- Permanent deletion support
+- Albums with many-to-many media membership
+- Tags with many-to-many media membership
+- Persistent application settings
+- File metadata: size, modified time, MIME type, dimensions/duration fields
+- Graceful handling of inaccessible files
 
-## Planned features
+## Architecture
 
-- Media folder scanning and indexing
-- Photo and video library
-- Thumbnail generation
-- Search and filtering
-- Albums and tags
-- Favorites and trash
-- Duplicate detection
-- Metadata inspection
-- Bulk operations
-- Local database and cache
-- Optional backup/cloud integration
+```text
+JavaFX UI
+   |
+Application / Services
+   |-- Scanner
+   |-- Filter
+   |-- Sorter
+   |-- Hashing
+   |-- Thumbnail / Viewer
+   |
+Repositories
+   |-- Media
+   |-- Collections (Albums / Tags)
+   |-- Settings
+   |
+SQLite (~/.mediavault/mediavault.db)
+```
 
 ## Requirements
 
@@ -30,3 +50,5 @@ Foundation phase: project structure and the first desktop UI are in place.
 ```bash
 mvn clean javafx:run
 ```
+
+The application stores its local database under the current user's `.mediavault` directory. Media files themselves are never copied by the indexer; MediaVault stores metadata and references the original local paths.
