@@ -1,0 +1,13 @@
+target/
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+media-vault-data/
+*.db
+*.db-shm
+*.db-wal
