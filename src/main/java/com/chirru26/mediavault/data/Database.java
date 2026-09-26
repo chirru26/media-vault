@@ -18,11 +18,24 @@ public final class Database {
         try (Connection c = getConnection(); var s = c.createStatement()) {
             s.executeUpdate("PRAGMA journal_mode=WAL");
             s.executeUpdate("PRAGMA foreign_keys=ON");
-            s.executeUpdate("""CREATE TABLE IF NOT EXISTS media(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,file_name TEXT NOT NULL,file_path TEXT NOT NULL UNIQUE,
-                mime_type TEXT NOT NULL,media_type TEXT NOT NULL,file_size INTEGER NOT NULL,modified_at INTEGER NOT NULL,
-                content_hash TEXT,width INTEGER,height INTEGER,duration_ms INTEGER,indexed_at INTEGER NOT NULL,
-                favorite INTEGER NOT NULL DEFAULT 0,trashed INTEGER NOT NULL DEFAULT 0)""");
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS media(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    file_name TEXT NOT NULL,
+                    file_path TEXT NOT NULL UNIQUE,
+                    mime_type TEXT NOT NULL,
+                    media_type TEXT NOT NULL,
+                    file_size INTEGER NOT NULL,
+                    modified_at INTEGER NOT NULL,
+                    content_hash TEXT,
+                    width INTEGER,
+                    height INTEGER,
+                    duration_ms INTEGER,
+                    indexed_at INTEGER NOT NULL,
+                    favorite INTEGER NOT NULL DEFAULT 0,
+                    trashed INTEGER NOT NULL DEFAULT 0
+                )
+                """);
             s.executeUpdate("CREATE INDEX IF NOT EXISTS idx_media_type ON media(media_type)");
             s.executeUpdate("CREATE INDEX IF NOT EXISTS idx_media_name ON media(file_name)");
             s.executeUpdate("CREATE INDEX IF NOT EXISTS idx_media_hash ON media(content_hash)");
